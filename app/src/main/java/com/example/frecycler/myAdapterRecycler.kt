@@ -13,12 +13,17 @@ import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.content.ContextCompat.getDrawable
 import androidx.core.content.ContextCompat.startActivity
 import androidx.recyclerview.widget.RecyclerView
-import com.example.frecycler.databinding.Items2Binding
 import com.example.frecycler.databinding.ItemsBinding
 
-class myAdapterRecycler (var itemList:ArrayList<myList>): RecyclerView.Adapter<myAdapterRecycler.contentViews>() {
+class myAdapterRecycler(var itemList:ArrayList<myList>, var listener:OnItemClickListener): RecyclerView.Adapter<myAdapterRecycler.contentViews>() {
 
-    class contentViews(views: ItemsBinding):RecyclerView.ViewHolder(views.root) {
+    private var listaBase:ArrayList<myList> = ArrayList()
+
+    init{
+        listaBase.addAll(itemList)
+    }
+
+    inner class contentViews(views: ItemsBinding):RecyclerView.ViewHolder(views.root), View.OnClickListener {
 
         var itemText:TextView
         val itemIcon:ImageView
@@ -28,6 +33,12 @@ class myAdapterRecycler (var itemList:ArrayList<myList>): RecyclerView.Adapter<m
             itemText=views.textView
             itemIcon=views.imageView
             itemCont=views.cont
+
+            views.root.setOnClickListener(this)
+        }
+
+        override fun onClick(p0: View?) {
+            listener.onItemClick(adapterPosition)
         }
 
 /*
@@ -48,6 +59,10 @@ class myAdapterRecycler (var itemList:ArrayList<myList>): RecyclerView.Adapter<m
 */
     }
 
+    interface OnItemClickListener {
+        fun onItemClick(position:Int)
+    }
+
     override fun onCreateViewHolder(
         parent: ViewGroup,
         viewType: Int,
@@ -64,16 +79,14 @@ class myAdapterRecycler (var itemList:ArrayList<myList>): RecyclerView.Adapter<m
 
         holder.itemText.text=items.titulo
 
-        if(items.obs==false)
+        if(items.obs==false){
             holder.itemIcon.setImageDrawable(getDrawable(holder.itemIcon.context,R.drawable.cancel))
+        }else{
+            holder.itemIcon.setImageDrawable(getDrawable(holder.itemIcon.context,R.drawable.ok))
+        }
+
 
         val context=holder.itemCont.context
-
-        holder.itemCont.setOnClickListener {
-
-
-
-        }
 
         /*
             holder.itemTitulo.text=items.titulo
@@ -86,7 +99,30 @@ class myAdapterRecycler (var itemList:ArrayList<myList>): RecyclerView.Adapter<m
 
     override fun getItemCount()= itemList.size
 
+    fun filtrar(filtro:String)
+    {
 
+
+        if(filtro.isEmpty()){
+            itemList.clear()
+            itemList.addAll(listaBase)
+        }else{
+
+            var result:ArrayList<myList> = ArrayList()
+
+            for(item in itemList){
+                if(item.titulo?.lowercase()?.contains(filtro.lowercase())!!){
+                    result.add(item)
+                }
+            }
+            itemList.clear()
+            itemList.addAll(result)
+
+        }
+
+        notifyDataSetChanged()
+
+    }
 
 
 }

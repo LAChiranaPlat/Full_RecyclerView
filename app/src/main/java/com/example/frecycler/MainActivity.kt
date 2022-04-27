@@ -4,15 +4,18 @@ import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.os.PersistableBundle
 import android.util.Log
+import android.widget.SearchView
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.frecycler.databinding.ActivityMainBinding
 
-class MainActivity : AppCompatActivity() {
+class MainActivity : AppCompatActivity(), myAdapterRecycler.OnItemClickListener{
 
     lateinit var layout:ActivityMainBinding
     var presentacion:Boolean=false
     lateinit var listado:ArrayList<myList>
+    lateinit var myAdapter:myAdapterRecycler
+    var positionItem=0
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -21,6 +24,12 @@ class MainActivity : AppCompatActivity() {
         setContentView(layout.root)
 
         val list = layout.lista
+        var nCurso=layout.tilNombreCurso
+        var boxSearch=layout.search
+
+
+        nCurso.requestFocus()
+
         listado = ArrayList()
 
         if(savedInstanceState ==null){
@@ -43,23 +52,25 @@ class MainActivity : AppCompatActivity() {
         }
 
 
-        val myAdapter = myAdapterRecycler(listado)
+         myAdapter= myAdapterRecycler(listado,this)
 
         list.adapter = myAdapter
 
         layout.add.setOnClickListener {
 
-            listado.add(myList("Programación Javascript",
+            listado.add(myList(nCurso.editText?.text.toString(),
                 "Programación javascript de 0 a Experto",
                 "$ 32.00",
                 false))
             myAdapter.notifyDataSetChanged()
 
-            Log.i("result", listado.toString())
+            nCurso.editText?.text?.clear()
+            nCurso.editText?.requestFocus()
+
         }
 
         layout.delete.setOnClickListener {
-            listado.removeAt(1)
+            listado.removeAt(positionItem)
             myAdapter.notifyDataSetChanged()
         }
 
@@ -72,6 +83,21 @@ class MainActivity : AppCompatActivity() {
                 presentacion=false
             }
         }
+
+        boxSearch.setOnQueryTextListener(object: SearchView.OnQueryTextListener{
+
+            override fun onQueryTextSubmit(p0: String?): Boolean {
+                TODO("Not yet implemented")
+            }
+
+            override fun onQueryTextChange(p0: String?): Boolean {
+                Log.i("result",p0.toString())
+                myAdapter.filtrar(p0.toString())
+                return false
+            }
+
+        })
+
     }
 
 
@@ -82,5 +108,9 @@ class MainActivity : AppCompatActivity() {
         outState.putParcelableArrayList("listaRecycler",listado)
         outState.putBoolean("presentacion",presentacion)
 
+    }
+
+    override fun onItemClick(position: Int) {
+        positionItem=position
     }
 }
